@@ -25,7 +25,7 @@ Buying a tractor or harvester outright is expensive for most farmers, and equipm
 - Farmers track booking status (Pending / Approved / Rejected)
 
 **UX polish**
-- Dark mode, fully responsive layout
+- Dark mode and fully responsive layout
 - Loading skeletons, toast notifications, empty states, custom 404
 - Pagination with page numbers + prev/next, 10 items per page
 
