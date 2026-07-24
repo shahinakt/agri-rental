@@ -1,174 +1,401 @@
 # 🌾 AgriRent — Agri Equipment Rental System
 
-A full-stack marketplace connecting farmers who need short-term access to agricultural equipment with owners who have machinery to rent out. Built as a clean, production-style MVP — not a college CRUD assignment.
+A full-stack marketplace connecting farmers who need short-term access to agricultural equipment with owners who have machinery available for rent. AgriRent is built as a **production-style MVP** to demonstrate clean architecture, authentication, role-based authorization, and full-stack engineering practices—not just a basic CRUD application.
+
+## 🌐 Live Demo
+
+* **Frontend (Vercel):** https://agri-rental-nu.vercel.app/
+* **Backend API (Render):** https://agri-rental.onrender.com
+* **API Documentation:** https://agri-rental.onrender.com/docs
+
+---
 
 ## Overview
 
-Buying a tractor or harvester outright is expensive for most farmers, and equipment often sits idle between seasons for owners. AgriRent solves both problems: **owners** list and manage equipment, **farmers** browse, search, and book it for the days they need.
+Purchasing agricultural machinery such as tractors, harvesters, and seed drills is expensive for many farmers, while equipment owners often leave machinery unused between seasons.
 
-## Features
+AgriRent solves both problems by providing a rental marketplace where:
 
-**Authentication**
-- JWT-based register/login with bcrypt password hashing
-- Role selection at signup (Owner or Farmer)
-- Protected routes and role-based authorization on both client and server
+* **Equipment Owners** can list, manage, and rent out their machinery.
+* **Farmers** can browse, search, and book equipment only for the days they need.
 
-**Equipment**
-- Full CRUD for owners (create, edit, delete, toggle availability)
-- Public browse grid with search, category/location filters, and price sorting
-- Filters persist across pagination via URL query params
+This project focuses on building a realistic end-to-end rental platform with clean backend architecture and modern frontend practices.
 
-**Booking**
-- Farmers request a date range; total price is calculated server-side
-- Overlap detection prevents double-booking the same equipment
-- Owners approve or reject pending requests
-- Farmers track booking status (Pending / Approved / Rejected)
+---
 
-**UX polish**
-- Dark mode and fully responsive layout
-- Loading skeletons, toast notifications, empty states, custom 404
-- Pagination with page numbers + prev/next, 10 items per page
+# Features
 
-## Technology Stack
+## Authentication
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 15 (App Router), TypeScript, Tailwind CSS |
-| Forms | React Hook Form + Zod |
-| HTTP | Axios (centralized instance with auth interceptor) |
-| State | React Context API (auth only) |
-| Backend | FastAPI, SQLAlchemy, Pydantic |
-| Auth | JWT (python-jose) + bcrypt (passlib) |
-| Database | SQLite |
+* JWT-based authentication
+* Secure password hashing using bcrypt
+* Register as Owner or Farmer
+* Protected routes
+* Role-based authorization
+* Persistent login
 
-## Architecture
+---
 
-```
-Next.js (client components, URL-driven filter state)
-        │  axios + JWT bearer token
+## Equipment Management
+
+Owners can:
+
+* Create equipment listings
+* Update listings
+* Delete listings
+* Toggle equipment availability
+
+Public users can:
+
+* Browse equipment
+* Search by keyword
+* Filter by category
+* Filter by location
+* Sort by price
+* Paginate results
+
+Filter state persists using URL query parameters.
+
+---
+
+## Booking System
+
+Farmers can:
+
+* Request equipment for a selected date range
+* View booking status
+* Track booking history
+
+Owners can:
+
+* View booking requests
+* Approve bookings
+* Reject bookings
+
+Server-side booking logic includes:
+
+* Booking overlap detection
+* Automatic total price calculation
+* Ownership validation
+
+---
+
+## User Experience
+
+* Responsive design
+* Dark mode
+* Loading skeletons
+* Toast notifications
+* Empty states
+* Custom 404 page
+* Pagination (10 items per page)
+
+---
+
+# Technology Stack
+
+| Layer          | Technology                                        |
+| -------------- | ------------------------------------------------- |
+| Frontend       | Next.js 15 (App Router), TypeScript, Tailwind CSS |
+| Forms          | React Hook Form + Zod                             |
+| HTTP           | Axios (Centralized instance + Auth Interceptor)   |
+| State          | React Context API (Authentication only)           |
+| Backend        | FastAPI                                           |
+| ORM            | SQLAlchemy                                        |
+| Validation     | Pydantic                                          |
+| Authentication | JWT (python-jose), bcrypt (passlib)               |
+| Database (MVP) | SQLite                                            |
+
+> **Note:** SQLite is intentionally used for this MVP because it requires zero setup, making the project easy to run locally and evaluate. For a real production deployment, a managed PostgreSQL database such as **Neon PostgreSQL** is recommended for scalability, concurrency, backups, and reliability.
+
+---
+
+# Architecture
+
+```text
+Next.js (Client Components)
+        │
+        │ Axios + JWT Bearer Token
         ▼
-FastAPI  routers → services → models
-        │  SQLAlchemy ORM
+FastAPI
+Routers
+        │
         ▼
-SQLite
+Service Layer
+(Business Logic)
+        │
+        ▼
+SQLAlchemy ORM
+        │
+        ▼
+SQLite (MVP)
 ```
 
-Routers stay thin (parse → delegate → respond). All business logic — booking overlap checks, price calculation, ownership checks — lives in the **service layer**, keeping route handlers readable and logic testable in isolation.
+Business logic—including booking validation, overlap detection, ownership checks, and price calculation—is isolated inside the **service layer**, keeping API routes thin and maintainable.
 
-## Folder Structure
+---
 
-```
+# Folder Structure
+
+```text
 client/
-  app/                  # Next.js App Router pages
-    login/ register/
+  app/
+    login/
+    register/
     equipment/[id]/
-    dashboard/owner/  dashboard/farmer/
+    dashboard/
+      owner/
+      farmer/
+
   components/
-    auth/ equipment/ booking/ dashboard/ ui/
-  context/              # AuthContext (the only global state)
-  services/             # axios instance + one wrapper per resource
-  types/                # shared TS interfaces
-  constants/            # centralized config values
-  lib/                  # formatting + class-name helpers
+    auth/
+    equipment/
+    booking/
+    dashboard/
+    ui/
+
+  context/
+  services/
+  types/
+  constants/
+  lib/
 
 server/
   app/
-    models/             # SQLAlchemy ORM models
-    schemas/            # Pydantic request/response schemas
-    routers/            # thin FastAPI route handlers
-    services/           # business logic
-    auth/               # JWT + password hashing + dependencies
-    database/           # engine/session setup
-  seed.py               # demo data generator
+    auth/
+    database/
+    models/
+    routers/
+    schemas/
+    services/
+
+  seed.py
 ```
 
-## Database Schema
+---
 
-**users** — id, name, email (unique), password (hashed), role, created_at
-**equipment** — id, owner_id (FK), title, description, category, location, price_per_day, availability, image, created_at
-**bookings** — id, equipment_id (FK), farmer_id (FK), start_date, end_date, status, total_price, created_at
+# Database Schema
 
-## Authentication Flow
+### users
 
+* id
+* name
+* email (unique)
+* password (hashed)
+* role
+* created_at
+
+### equipment
+
+* id
+* owner_id (FK)
+* title
+* description
+* category
+* location
+* price_per_day
+* availability
+* image
+* created_at
+
+### bookings
+
+* id
+* equipment_id (FK)
+* farmer_id (FK)
+* start_date
+* end_date
+* total_price
+* status
+* created_at
+
+---
+
+# Authentication Flow
+
+```text
+Register
+    ↓
+Hash Password (bcrypt)
+    ↓
+Store User
+    ↓
+Generate JWT
+
+Login
+    ↓
+Verify Password
+    ↓
+Generate JWT
+
+Client
+    ↓
+Store JWT
+    ↓
+Authorization: Bearer <token>
+
+Server
+    ↓
+Decode JWT
+    ↓
+Load User
+    ↓
+Authorize Request
 ```
-Register → hash password (bcrypt) → store user → issue JWT
-Login    → verify password → issue JWT
-Client   → stores token → sends as Authorization: Bearer <token>
-Server   → decodes token on each request → loads user → checks role for protected actions
-```
 
-## API Endpoints
+---
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| POST | `/api/auth/register` | — | Create account |
-| POST | `/api/auth/login` | — | Log in, get JWT |
-| GET | `/api/auth/me` | ✔ | Current user |
-| GET | `/api/equipment` | — | List/search/filter/sort/paginate |
-| GET | `/api/equipment/{id}` | — | Equipment detail |
-| POST | `/api/equipment` | Owner | Create listing |
-| PUT | `/api/equipment/{id}` | Owner | Update listing |
-| DELETE | `/api/equipment/{id}` | Owner | Delete listing |
-| GET | `/api/users/me/equipment` | Owner | Own listings |
-| POST | `/api/booking` | Farmer | Request booking |
-| GET | `/api/bookings` | ✔ | Own bookings (role-aware) |
-| PATCH | `/api/booking/{id}` | Owner | Approve/reject |
+# API Endpoints
 
-## Installation
+| Method | Endpoint                  | Auth   | Description              |
+| ------ | ------------------------- | ------ | ------------------------ |
+| POST   | `/api/auth/register`      | No     | Register                 |
+| POST   | `/api/auth/login`         | No     | Login                    |
+| GET    | `/api/auth/me`            | Yes    | Current user             |
+| GET    | `/api/equipment`          | No     | Browse equipment         |
+| GET    | `/api/equipment/{id}`     | No     | Equipment details        |
+| POST   | `/api/equipment`          | Owner  | Create equipment         |
+| PUT    | `/api/equipment/{id}`     | Owner  | Update equipment         |
+| DELETE | `/api/equipment/{id}`     | Owner  | Delete equipment         |
+| GET    | `/api/users/me/equipment` | Owner  | Owner listings           |
+| POST   | `/api/booking`            | Farmer | Create booking           |
+| GET    | `/api/bookings`           | Yes    | User bookings            |
+| PATCH  | `/api/booking/{id}`       | Owner  | Approve / Reject booking |
 
-### Backend
+---
+
+# Local Installation
+
+## Backend
 
 ```bash
 cd server
+
 python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+
+# Windows
+venv\Scripts\activate
+
+# Linux / macOS
+source venv/bin/activate
+
 pip install -r requirements.txt
+
 cp .env.example .env
-python seed.py                # optional: generates demo data
+
+python seed.py    # Optional
+
 uvicorn app.main:app --reload --port 8000
 ```
 
-API docs available at `http://localhost:8000/docs`.
+Swagger API:
 
-### Frontend
+```
+http://localhost:8000/docs
+```
+
+---
+
+## Frontend
 
 ```bash
 cd client
+
 npm install
+
 cp .env.local.example .env.local
+
 npm run dev
 ```
 
-App available at `http://localhost:3000`.
+Application:
 
-### Demo accounts (after seeding)
-
-All seeded accounts use password `password123`, e.g. `owner1@example.com`, `farmer1@example.com` (5 owners, 10 farmers total).
-
-## Environment Variables
-
-**server/.env**
 ```
+http://localhost:3000
+```
+
+---
+
+# Demo Accounts
+
+After running the seed script:
+
+Password for all accounts:
+
+```
+password123
+```
+
+Example accounts:
+
+```
+owner1@example.com
+
+farmer1@example.com
+```
+
+The seed script creates:
+
+* 5 Owners
+* 10 Farmers
+
+---
+
+# Environment Variables
+
+## server/.env
+
+```env
 SECRET_KEY=change-this-to-a-random-secret-in-production
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 DATABASE_URL=sqlite:///./agri_rental.db
 CORS_ORIGINS=http://localhost:3000
 ```
 
-**client/.env.local**
-```
+## client/.env.local
+
+```env
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-## Future Improvements
+For deployment, update `NEXT_PUBLIC_API_URL` to your Render backend URL.
 
-- Move JWT storage from localStorage to httpOnly cookies
-- Real image uploads instead of externally hosted URLs
-- Email notifications on booking status changes
-- Reviews/ratings for equipment and owners
-- Payment integration for booking deposits
-- Server-side computed live availability (booking-derived, not just owner toggle)
+---
 
-## Author
+# Deployment
 
-Built as a full-stack MVP demonstrating clean architecture, role-based auth, and production-style engineering practices.
+## Frontend
+
+* Platform: **Vercel**
+* URL: https://agri-rental-nu.vercel.app/
+
+## Backend
+
+* Platform: **Render**
+* URL: https://agri-rental.onrender.com
+
+The frontend communicates with the deployed FastAPI backend through environment variables.
+
+---
+
+# Future Improvements
+
+* Replace SQLite with Neon PostgreSQL
+* Move JWT from localStorage to httpOnly cookies
+* Image upload support (Cloudinary/S3)
+* Email notifications
+* Reviews and ratings
+* Payment integration
+* Live availability derived from bookings
+* Booking cancellation and refund workflow
+* Admin dashboard
+* Unit and integration testing
+
+---
+
+# Author
+
+Built as a **production-style Full-Stack MVP** showcasing modern web development practices with Next.js, FastAPI, JWT authentication, layered backend architecture, and role-based access control.
+
+The project intentionally uses **SQLite** to keep local setup simple and make evaluation effortless. For production-scale deployments, the backend is designed to be easily migrated to **PostgreSQL (Neon)** or another managed relational database with minimal changes.
+
