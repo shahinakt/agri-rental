@@ -10,13 +10,14 @@ import app.models  # noqa: F401 - ensures models are registered before create_al
 app = FastAPI(title="Agri Equipment Rental API", version="1.0.0")
 
 origins = [
-    "http://localhost:3000", #local development
-    "https://agri-rental-nu.vercel.app", # production frontend
+    "http://localhost:3000",
+    "https://agri-rental-nu.vercel.app",
+    "https://agri-rental-nandimqen-shahinas-projects-6d2f2e36.vercel.app",
 ]
     
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
